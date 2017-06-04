@@ -9,6 +9,9 @@ set(CMAKE_OSX_ARCHITECTURES "x86_64")
 # features can be used, not the minimum required version to run.
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9" CACHE string "")
 
+# Set a custom default install prefix.
+set(CMAKE_INSTALL_PREFIX "/opt/dolphin-emu" CACHE PATH "Install path prefix, prepended onto install directories.")
+
 project(dolphin-emu)
 option(USE_EGL "Enables EGL OpenGL Interface" OFF)
 option(TRY_X11 "Enables X11 Support" ON)
