@@ -317,7 +317,7 @@ endif()
 # Add an option to build relocatable binaries on Linux
 # The Sys folder will need to be copied to the Binaries folder.
 if(UNIX)
-  option(LINUX_LOCAL_DEV "Enable relocatable binary" OFF)
+  option(LINUX_LOCAL_DEV "Enable relocatable binary" ON)
   if(LINUX_LOCAL_DEV)
     add_definitions(-DLINUX_LOCAL_DEV)
   endif()
