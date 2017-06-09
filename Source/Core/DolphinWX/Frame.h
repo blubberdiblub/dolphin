@@ -42,6 +42,10 @@ class LogConfigWindow;
 class NetPlaySetupFrame;
 class TASInputDlg;
 class wxCheatsWindow;
+namespace Cheats
+{
+class ManagerWindow;
+}
 
 class wxAuiManager;
 class wxAuiManagerEvent;
@@ -154,6 +158,7 @@ private:
   FifoPlayerDlg* m_fifo_player_dialog = nullptr;
   std::array<TASInputDlg*, 8> m_tas_input_dialogs{};
   wxCheatsWindow* m_cheats_window = nullptr;
+  Cheats::ManagerWindow* m_cheats_manager_window = nullptr;
   bool m_use_debugger = false;
   bool m_batch_mode = false;
   bool m_editing_perspectives = false;
@@ -340,6 +345,8 @@ private:
   void OnNetPlay(wxCommandEvent& event);
 
   void OnShowCheatsWindow(wxCommandEvent& event);
+  void OnShowCheatsManager(wxCommandEvent& event);
+  void OnCloseCheatsManager(wxCloseEvent& event);
   void OnLoadWiiMenu(wxCommandEvent& event);
   void OnInstallWAD(wxCommandEvent& event);
   void OnUninstallWAD(wxCommandEvent& event);

@@ -64,6 +64,7 @@
 #include "DiscIO/VolumeWad.h"
 
 #include "DolphinWX/AboutDolphin.h"
+#include "DolphinWX/CheatingNew/Manager.h"
 #include "DolphinWX/Cheats/CheatsWindow.h"
 #include "DolphinWX/Config/ConfigMain.h"
 #include "DolphinWX/ControllerConfigDiag.h"
@@ -179,6 +180,7 @@ void CFrame::BindMenuBarEvents()
   Bind(wxEVT_MENU, &CFrame::OnLoadGameCubeIPLUSA, this, IDM_LOAD_GC_IPL_USA);
   Bind(wxEVT_MENU, &CFrame::OnLoadGameCubeIPLEUR, this, IDM_LOAD_GC_IPL_EUR);
   Bind(wxEVT_MENU, &CFrame::OnShowCheatsWindow, this, IDM_CHEATS);
+  Bind(wxEVT_MENU, &CFrame::OnShowCheatsManager, this, IDM_CHEATS_MANAGER);
   Bind(wxEVT_MENU, &CFrame::OnNetPlay, this, IDM_NETPLAY);
   Bind(wxEVT_MENU, &CFrame::OnInstallWAD, this, IDM_MENU_INSTALL_WAD);
   Bind(wxEVT_MENU, &CFrame::OnLoadWiiMenu, this, IDM_LOAD_WII_MENU);
@@ -1210,6 +1212,38 @@ void CFrame::OnShowCheatsWindow(wxCommandEvent& WXUNUSED(event))
   m_cheats_window->Raise();
 }
 
+void CFrame::OnShowCheatsManager(wxCommandEvent& WXUNUSED(event))
+{
+  if (!m_cheats_manager_window)
+  {
+    m_cheats_manager_window = new Cheats::ManagerWindow(this);
+    m_cheats_manager_window->Bind(wxEVT_CLOSE_WINDOW, &CFrame::OnCloseCheatsManager, this);
+  }
+
+  m_cheats_manager_window->Show();
+  m_cheats_manager_window->Raise();
+}
+
+void CFrame::OnCloseCheatsManager(wxCloseEvent& event)
+{
+  if (event.GetEventObject() != m_cheats_manager_window)
+  {
+    ERROR_LOG(CORE, "Cheat Manager window mismatch");
+    return;
+  }
+
+  if (event.CanVeto())
+  {
+    event.Veto();
+    m_cheats_manager_window->Hide();
+  }
+  else
+  {
+    m_cheats_manager_window->Destroy();
+    m_cheats_manager_window = nullptr;
+  }
+}
+
 void CFrame::OnLoadWiiMenu(wxCommandEvent& WXUNUSED(event))
 {
   BootGame(Common::GetTitleContentPath(Titles::SYSTEM_MENU, Common::FROM_CONFIGURED_ROOT));
@@ -1686,6 +1720,11 @@ void CFrame::UpdateGUI()
       m_cheats_window->UpdateGUI();
     else
       m_cheats_window->Hide();
+  }
+
+  if (m_cheats_manager_window)
+  {
+    m_cheats_manager_window->UpdateGUI();
   }
 }
 

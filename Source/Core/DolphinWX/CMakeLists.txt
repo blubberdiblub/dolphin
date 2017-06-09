@@ -5,6 +5,14 @@ endif()
 set(SRCS
   AboutDolphin.cpp
   ControllerConfigDiag.cpp
+  CheatingNew/CheatsPanel.cpp
+  CheatingNew/CheatsTreeModel.cpp
+  CheatingNew/Finder.cpp
+  CheatingNew/Manager.cpp
+  CheatingNew/MemoryRanges.cpp
+  CheatingNew/SearchPanel.cpp
+  CheatingNew/SearchResultsModel.cpp
+  CheatingNew/Utils.cpp
   Cheats/ActionReplayCodesPanel.cpp
   Cheats/ARCodeAddEdit.cpp
   Cheats/CheatSearchTab.cpp

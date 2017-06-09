@@ -228,6 +228,7 @@ wxMenu* MainMenuBar::CreateToolsMenu() const
                             _("Load a GameCube Main Menu located under Dolphin's GC folder."));
   tools_menu->AppendSeparator();
   tools_menu->Append(IDM_CHEATS, _("&Cheat Manager"));
+  tools_menu->Append(IDM_CHEATS_MANAGER, _("New Cheat Manager"));
   tools_menu->Append(IDM_NETPLAY, _("Start &NetPlay..."));
   tools_menu->Append(IDM_FIFOPLAYER, _("FIFO Player"));
   tools_menu->AppendSeparator();
