@@ -53,7 +53,7 @@ endif()
 
 option(ENCODE_FRAMEDUMPS "Encode framedumps in AVI format" ON)
 
-option(FASTLOG "Enable all logs" OFF)
+option(FASTLOG "Enable all logs" ON)
 option(OPROFILING "Enable profiling" OFF)
 option(GDBSTUB "Enable gdb stub for remote debugging." OFF)
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
