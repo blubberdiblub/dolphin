@@ -12,6 +12,10 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9" CACHE string "")
 # Set a custom default install prefix.
 set(CMAKE_INSTALL_PREFIX "/opt/dolphin-emu" CACHE PATH "Install path prefix, prepended onto install directories.")
 
+# Enable more warnings per default.
+set(CMAKE_CXX_FLAGS "-Wall -Wcast-align -Wpointer-arith -Wuninitialized" CACHE STRING "Flags used by the compiler during all build types.")
+set(CMAKE_C_FLAGS "-Wall -Wbad-function-cast -Wcast-align -Wpointer-arith -Wuninitialized" CACHE STRING "Flags used by the compiler during all build types.")
+
 project(dolphin-emu)
 option(USE_EGL "Enables EGL OpenGL Interface" OFF)
 option(TRY_X11 "Enables X11 Support" ON)
