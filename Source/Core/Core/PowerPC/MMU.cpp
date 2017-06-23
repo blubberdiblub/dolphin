@@ -4,7 +4,9 @@
 
 #include <cstddef>
 #include <cstring>
+#include <optional>
 #include <string>
+#include <vector>
 
 #include "Common/Atomic.h"
 #include "Common/BitUtils.h"
@@ -1263,6 +1265,236 @@ void IBATUpdated()
   }
   JitInterface::ClearSafe();
 }
+
+// =================================
+// Functions that can be called out of band (e.g. from cheat code) to access emulated memory
+// --------------------------
+
+static std::optional<u8*> VerifyAddressRange(u32 address, u32 size)
+{
+  if (size <= 0)
+    return std::nullopt;
+
+  u32 ram_address = address & 0xF9FFFFFF;
+  if (Memory::m_pRAM && ram_address < Memory::REALRAM_SIZE &&
+      size <= Memory::REALRAM_SIZE - ram_address)
+    return &Memory::m_pRAM[ram_address];
+
+  u32 exram_address = address - 0x10000000;
+  if (Memory::m_pEXRAM && exram_address < Memory::EXRAM_SIZE &&
+      size <= Memory::EXRAM_SIZE - exram_address)
+    return &Memory::m_pEXRAM[exram_address];
+
+  return std::nullopt;
+}
+
+static std::optional<u8*> TranslateAndVerifyPage(u32 address, AddressTranslationType type)
+{
+  _dbg_assert_(POWERPC,
+               type == AddressTranslationType::DATA || type == AddressTranslationType::INST);
+
+  auto translation_result = (type == AddressTranslationType::DATA) ?
+                                TranslateAddress<FLAG_NO_EXCEPTION>(address) :
+                                TranslateAddress<FLAG_OPCODE_NO_EXCEPTION>(address);
+  if (!translation_result.Success())
+    return std::nullopt;
+
+  u32 ram_address = translation_result.address & 0xF9FFFFFF;
+  if (Memory::m_pRAM && ram_address < Memory::REALRAM_SIZE)
+    return &Memory::m_pRAM[ram_address];
+
+  u32 exram_address = translation_result.address - 0x10000000;
+  if (Memory::m_pEXRAM && exram_address < Memory::EXRAM_SIZE)
+    return &Memory::m_pEXRAM[exram_address];
+
+  return std::nullopt;
+}
+
+bool HostIsRAMRange(const u32 address, u32 size, AddressTranslationType type)
+{
+  static const u32 page_size = HW_PAGE_SIZE;
+  static const u32 max_page_offset = page_size - 1;
+  static const u32 page_mask = ~max_page_offset;
+
+  if (size <= 0)
+    size = 1;
+
+  if (type == AddressTranslationType::NONE)
+    return static_cast<bool>(VerifyAddressRange(address, size));
+
+  if (!TranslateAndVerifyPage(address, type))
+    return false;
+
+  u32 page_address = (address + page_size) & page_mask;
+
+  {
+    u32 first_size = page_address - address;
+    if (first_size >= size)
+      return true;
+
+    size -= first_size;
+  }
+
+  while (true)
+  {
+    if (!page_address)
+      return false;
+
+    if (!TranslateAndVerifyPage(page_address, type))
+      return false;
+
+    if (size <= page_size)
+      return true;
+
+    size -= page_size;
+    page_address += page_size;
+  }
+}
+
+bool HostReadRAM(void* buffer, const u32 address, u32 size, AddressTranslationType type)
+{
+  static const u32 page_size = HW_PAGE_SIZE;
+  static const u32 max_page_offset = page_size - 1;
+  static const u32 page_mask = ~max_page_offset;
+
+  if (size <= 0)
+    return false;
+
+  if (type == AddressTranslationType::NONE)
+  {
+    auto source = VerifyAddressRange(address, size);
+    if (!source)
+      return false;
+
+    std::memcpy(buffer, *source, size);
+    return true;
+  }
+
+  u32 page_address;
+  u8* target_slice;
+
+  {
+    auto first_source = TranslateAndVerifyPage(address, type);
+    if (!first_source)
+      return false;
+
+    page_address = (address + page_size) & page_mask;
+    u32 first_size = page_address - address;
+    std::memcpy(buffer, *first_source, std::min(first_size, size));
+    if (first_size >= size)
+      return true;
+
+    if (!page_address)
+      return false;
+
+    target_slice = static_cast<u8*>(buffer) + first_size;
+    size -= first_size;
+  }
+
+  while (size > page_size)
+  {
+    auto source = TranslateAndVerifyPage(page_address, type);
+    if (!source)
+      return false;
+
+    page_address += page_size;
+    if (!page_address)
+      return false;
+
+    std::memcpy(target_slice, *source, page_size);
+
+    target_slice += page_size;
+    size -= page_size;
+  }
+
+  auto last_source = TranslateAndVerifyPage(page_address, type);
+  if (!last_source)
+    return false;
+
+  std::memcpy(target_slice, *last_source, size);
+  return true;
+}
+
+bool HostWriteRAM(const u32 address, const void* buffer, u32 size, AddressTranslationType type)
+{
+  static const u32 page_size = HW_PAGE_SIZE;
+  static const u32 max_page_offset = page_size - 1;
+  static const u32 page_mask = ~max_page_offset;
+
+  if (size <= 0)
+    return false;
+
+  if (type == AddressTranslationType::NONE)
+  {
+    auto target = VerifyAddressRange(address, size);
+    if (!target)
+      return false;
+
+    std::memcpy(*target, buffer, size);
+    return true;
+  }
+
+  auto first_target = TranslateAndVerifyPage(address, type);
+  if (!first_target)
+    return false;
+
+  u32 page_address = (address + page_size) & page_mask;
+  u32 first_size = page_address - address;
+  if (first_size >= size)
+  {
+    std::memcpy(*first_target, buffer, size);
+    return true;
+  }
+
+  if (!page_address)
+    return false;
+
+  size -= first_size;
+  if (size <= page_size)
+  {
+    auto second_target = TranslateAndVerifyPage(page_address, type);
+    if (!second_target)
+      return false;
+
+    std::memcpy(*first_target, buffer, first_size);
+    std::memcpy(*second_target, static_cast<const u8*>(buffer) + first_size, size);
+    return true;
+  }
+
+  std::vector<u8*> page_list;
+  page_list.reserve((size - 1) / page_size);
+
+  while (size > page_size)
+  {
+    auto target = TranslateAndVerifyPage(page_address, type);
+    if (!target)
+      return false;
+
+    page_address += page_size;
+    if (!page_address)
+      return false;
+
+    page_list.emplace_back(*target);
+
+    size -= page_size;
+  }
+
+  auto last_target = TranslateAndVerifyPage(page_address, type);
+  if (!last_target)
+    return false;
+
+  const u8* source_slice = static_cast<const u8*>(buffer);
+  std::memcpy(*first_target, source_slice, first_size);
+  source_slice += first_size;
+  for (u8* page : page_list)
+  {
+    std::memcpy(page, source_slice, page_size);
+    source_slice += page_size;
+  }
+  std::memcpy(*last_target, source_slice, size);
+  return true;
+}
+// =====================
 
 // Translate effective address using BAT or PAT.  Returns 0 if the address cannot be translated.
 // Through the hardware looks up BAT and TLB in parallel, BAT is used first if available.

@@ -229,6 +229,23 @@ bool HostIsInstructionRAMAddress(u32 address);
 
 std::string HostGetString(u32 em_address, size_t size = 0);
 
+// Better functions for cheats, etc. to access emulated memory, as these are insensitive to the
+// current state of MSR.DR and MSR.IR and therefore return stable results regardless of whether the
+// emulation is currently inside user code or interrupt handler code.
+
+enum class AddressTranslationType
+{
+  NONE,
+  DATA,
+  INST,
+};
+
+bool HostIsRAMRange(u32 address, u32 size, AddressTranslationType type);
+
+// These come without byteswapping, so you will have to use "Common/Swap.h" functions.
+bool HostReadRAM(void* buffer, u32 address, u32 size, AddressTranslationType type);
+bool HostWriteRAM(u32 address, const void* buffer, u32 size, AddressTranslationType type);
+
 // Routines for the CPU core to access memory.
 
 // Used by interpreter to read instructions, uses iCache
