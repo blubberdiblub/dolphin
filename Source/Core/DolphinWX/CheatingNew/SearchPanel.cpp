@@ -40,6 +40,8 @@ SearchPanel::SearchPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
   DEBUG_LOG(ACTIONREPLAY, "%s(): creating", __FUNCTION__);
 
   CreateGUI();
+
+  m_refresh_timer.Start(100);  // TODO: find a good compromise and make the frequency configurable
 }
 
 SearchPanel::~SearchPanel()
@@ -90,7 +92,9 @@ void SearchPanel::CreateGUI()
                                      wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
   m_search_results->AppendTextColumn("Old Value", 2, wxDATAVIEW_CELL_ACTIVATABLE, -1, wxALIGN_RIGHT,
                                      wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
+
   m_search_results->Bind(wxEVT_TIMER, &SearchPanel::OnRefresh, this);
+  m_refresh_timer.SetOwner(m_search_results);
 
   auto* const search_view_sizer = new wxBoxSizer(wxVERTICAL);
   search_view_sizer->Add(search_results_header_sizer, wxSizerFlags(0).Expand());
@@ -143,9 +147,6 @@ void SearchPanel::CreateGUI()
   SetMinClientSize(search_sizer->ComputeFittingClientSize(this));
 
   UpdateSearchResultsStatus();
-
-  m_refresh_timer.SetOwner(m_search_results);
-  m_refresh_timer.Start(100);  // TODO: find a good compromise and make the frequency configurable
 }
 
 void SearchPanel::UpdateSearchResultsStatus()

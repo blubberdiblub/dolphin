@@ -30,6 +30,8 @@ CheatsPanel::CheatsPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, co
   DEBUG_LOG(ACTIONREPLAY, "%s(): creating", __FUNCTION__);
 
   CreateGUI();
+
+  m_refresh_timer.Start(100);  // TODO: find a good compromise and make the frequency configurable
 }
 
 CheatsPanel::~CheatsPanel()
@@ -88,16 +90,15 @@ void CheatsPanel::CreateGUI()
       _("Description"),
       new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_EDITABLE, wxALIGN_LEFT), 1, 120,
       wxALIGN_CENTER, wxDATAVIEW_COL_RESIZABLE));
+
   m_cheats_tree->Bind(wxEVT_TIMER, &CheatsPanel::OnRefresh, this);
+  m_refresh_timer.SetOwner(m_cheats_tree);
 
   auto* const cheats_sizer = new wxBoxSizer(wxVERTICAL);
   cheats_sizer->Add(m_cheats_tree, wxSizerFlags(1).Expand());
 
   SetSizer(cheats_sizer);
   SetMinClientSize(cheats_sizer->ComputeFittingClientSize(this));
-
-  m_refresh_timer.SetOwner(m_cheats_tree);
-  m_refresh_timer.Start(100);  // TODO: find a good compromise and make the frequency configurable
 }
 
 void CheatsPanel::OnRefresh(wxTimerEvent& WXUNUSED(event))
