@@ -53,9 +53,9 @@ public:
   void ClearResults();
   std::size_t GetResultCount() const;
   MaybeAddress GetAddress(std::size_t idx) const;
+  MemoryItemType GetItemType(std::size_t idx) const;
   MemoryItem GetCurrentItem(std::size_t idx);
   MemoryItem GetPreviousItem(std::size_t idx);
-  MemoryItemType GetSearchValueType() const;
 
   int RegisterCallback(NewResultsCallback new_results_callback);
   void UnregisterCallback(int callback_id);

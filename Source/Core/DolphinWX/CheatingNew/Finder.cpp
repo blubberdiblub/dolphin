@@ -233,6 +233,11 @@ MaybeAddress Finder::GetAddress(std::size_t idx) const
   return m_search_results[idx].address;
 }
 
+MemoryItemType Finder::GetItemType(std::size_t idx) const
+{
+  return m_search_value_type;
+}
+
 void Finder::UpdateItem(SearchResult& result)
 {
   result.current = PeekMemoryItem(result.address, m_search_value_type, AddressTranslation::DATA);
@@ -259,11 +264,6 @@ MemoryItem Finder::GetPreviousItem(std::size_t idx)
 
   UpdateItem(m_search_results[idx]);
   return m_search_results[idx].previous;
-}
-
-MemoryItemType Finder::GetSearchValueType() const
-{
-  return m_search_value_type;
 }
 
 int Finder::RegisterCallback(NewResultsCallback new_results_callback)

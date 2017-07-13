@@ -58,12 +58,12 @@ void SearchResultsModel::ClearResults()
 
 unsigned int SearchResultsModel::GetColumnCount() const
 {
-  return 3;
+  return 4;
 }
 
 wxString SearchResultsModel::GetColumnType(unsigned int col) const
 {
-  return "string";
+  return (col <= 1) ? "long" : "string";
 }
 
 bool SearchResultsModel::GetAttrByRow(unsigned int row, unsigned int col,
@@ -79,9 +79,14 @@ bool SearchResultsModel::IsEnabledByRow(unsigned int row, unsigned int col) cons
 
 void SearchResultsModel::GetValueByRow(wxVariant& variant, unsigned int row, unsigned int col) const
 {
+  variant.MakeNull();
+
   if (row >= MAX_ROWS)
   {
-    variant = "...";
+    if (col > 1)
+    {
+      variant = "...";
+    }
     return;
   }
 
@@ -90,15 +95,24 @@ void SearchResultsModel::GetValueByRow(wxVariant& variant, unsigned int row, uns
   case 0:
     if (auto address_opt = m_finder.GetAddress(row))
     {
-      variant = wxString::Format("0x%X", *address_opt);
-      return;
+      variant = static_cast<long>(*address_opt);
     }
 
-    break;
+    return;
   case 1:
-  case 2:
   {
-    MemoryItem item = (col == 1) ? m_finder.GetCurrentItem(row) : m_finder.GetPreviousItem(row);
+    auto type = m_finder.GetItemType(row);
+    if (IsValidMemoryItemType(type))
+    {
+      variant = static_cast<long>(type);
+    }
+
+    return;
+  }
+  case 2:
+  case 3:
+  {
+    MemoryItem item = (col == 2) ? m_finder.GetCurrentItem(row) : m_finder.GetPreviousItem(row);
     if (IsValidMemoryItem(item))
     {
       if (auto str_opt = FormatMemoryItem(item))
@@ -117,7 +131,7 @@ void SearchResultsModel::GetValueByRow(wxVariant& variant, unsigned int row, uns
 
 bool SearchResultsModel::SetValueByRow(const wxVariant& variant, unsigned int row, unsigned int col)
 {
-  if (col != 1)
+  if (col != 2)
     return false;
 
   if (row >= MAX_ROWS)
@@ -133,7 +147,7 @@ bool SearchResultsModel::SetValueByRow(const wxVariant& variant, unsigned int ro
     return false;
   }
 
-  MemoryItemType type = m_finder.GetSearchValueType();
+  MemoryItemType type = m_finder.GetItemType(row);
   if (!IsValidMemoryItemType(type))
     return false;
 

@@ -4,6 +4,8 @@
 
 #include "DolphinWX/CheatingNew/SearchPanel.h"
 
+#include <optional>
+
 #include <wx/arrstr.h>
 #include <wx/button.h>
 #include <wx/choice.h>
@@ -28,11 +30,59 @@
 #include "DolphinWX/CheatingNew/Utils.h"
 #include "DolphinWX/WxUtils.h"
 
-wxDEFINE_EVENT(DOLPHIN_EVT_CHEATS_NEW_SEARCH_RESULTS, wxCommandEvent);
 wxDEFINE_EVENT(DOLPHIN_EVT_CHEATS_UPDATE_SEARCH_PROGRESS, wxCommandEvent);
+wxDEFINE_EVENT(DOLPHIN_EVT_CHEATS_NEW_SEARCH_RESULTS, wxCommandEvent);
 
 namespace Cheats
 {
+namespace
+{
+class AddressRenderer : public wxDataViewCustomRenderer
+{
+public:
+  AddressRenderer(wxDataViewCellMode mode = wxDATAVIEW_CELL_INERT,
+                  int align = wxDVR_DEFAULT_ALIGNMENT);
+
+  virtual bool SetValue(const wxVariant& value);
+  virtual bool GetValue(wxVariant& value) const { return false; }
+  virtual bool Render(wxRect cell, wxDC* dc, int state);
+  virtual wxSize GetSize() const;
+
+  static wxString GetDefaultType() { return "long"; }
+
+private:
+  wxString m_str;
+};
+
+AddressRenderer::AddressRenderer(wxDataViewCellMode mode, int align)
+    : wxDataViewCustomRenderer(GetDefaultType(), mode, align)
+{
+}
+
+bool AddressRenderer::SetValue(const wxVariant& value)
+{
+  if (!value.IsType("long"))
+  {
+    m_str = "...";
+    return false;
+  }
+
+  m_str = wxString::Format("0x%X", value.GetLong());
+  return true;
+}
+
+bool AddressRenderer::Render(wxRect cell, wxDC* dc, int state)
+{
+  RenderText(m_str, 0, cell, dc, state);
+  return true;
+}
+
+wxSize AddressRenderer::GetSize() const
+{
+  return GetTextExtent(m_str);
+}
+}
+
 SearchPanel::SearchPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size,
                          long style, const wxString& name)
     : wxPanel(parent, id, pos, size, style, name)
@@ -86,11 +136,11 @@ void SearchPanel::CreateGUI()
   Bind(DOLPHIN_EVT_CHEATS_NEW_SEARCH_RESULTS, &SearchPanel::OnNewResults, this);
 
   m_search_results->AppendColumn(new wxDataViewColumn(
-      "Address", new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_ACTIVATABLE, wxALIGN_CENTER),
-      0, wxDVC_DEFAULT_WIDTH, wxALIGN_CENTER, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE));
-  m_search_results->AppendTextColumn("Value", 1, wxDATAVIEW_CELL_EDITABLE, -1, wxALIGN_RIGHT,
+      "Address", new AddressRenderer(wxDATAVIEW_CELL_ACTIVATABLE, wxALIGN_CENTER), 0,
+      wxDVC_DEFAULT_WIDTH, wxALIGN_CENTER, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE));
+  m_search_results->AppendTextColumn("Value", 2, wxDATAVIEW_CELL_EDITABLE, -1, wxALIGN_RIGHT,
                                      wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
-  m_search_results->AppendTextColumn("Old Value", 2, wxDATAVIEW_CELL_ACTIVATABLE, -1, wxALIGN_RIGHT,
+  m_search_results->AppendTextColumn("Old Value", 3, wxDATAVIEW_CELL_ACTIVATABLE, -1, wxALIGN_RIGHT,
                                      wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
 
   m_search_results->Bind(wxEVT_TIMER, &SearchPanel::OnRefresh, this);
