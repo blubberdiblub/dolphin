@@ -125,7 +125,7 @@ void SearchPanel::CreateGUI()
     }
 
     m_value_type = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, choices);
-    m_value_type->SetSelection(0);
+    m_value_type->SetSelection(2);
   }
 
   auto* const search_controls_sizer = new wxBoxSizer(wxVERTICAL);
