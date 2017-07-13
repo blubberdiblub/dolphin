@@ -33,6 +33,7 @@ private:
 
   void OnReset(wxCommandEvent& event);
   void OnNewResults(wxCommandEvent& event);
+  void OnItemActivated(wxDataViewEvent& event);
   void OnRefresh(wxTimerEvent& event);
   void OnSearch(wxCommandEvent& event);
   void OnCancel(wxCommandEvent& event);

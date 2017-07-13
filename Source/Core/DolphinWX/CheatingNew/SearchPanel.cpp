@@ -32,6 +32,7 @@
 
 wxDEFINE_EVENT(DOLPHIN_EVT_CHEATS_UPDATE_SEARCH_PROGRESS, wxCommandEvent);
 wxDEFINE_EVENT(DOLPHIN_EVT_CHEATS_NEW_SEARCH_RESULTS, wxCommandEvent);
+wxDEFINE_EVENT(DOLPHIN_EVT_CHEATS_ACTIVATE_SEARCH_RESULT, wxCommandEvent);
 
 namespace Cheats
 {
@@ -142,6 +143,7 @@ void SearchPanel::CreateGUI()
                                      wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
   m_search_results->AppendTextColumn("Old Value", 3, wxDATAVIEW_CELL_ACTIVATABLE, -1, wxALIGN_RIGHT,
                                      wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_COL_SORTABLE);
+  m_search_results->Bind(wxEVT_DATAVIEW_ITEM_ACTIVATED, &SearchPanel::OnItemActivated, this);
 
   m_search_results->Bind(wxEVT_TIMER, &SearchPanel::OnRefresh, this);
   m_refresh_timer.SetOwner(m_search_results);
@@ -231,6 +233,16 @@ void SearchPanel::OnNewResults(wxCommandEvent& WXUNUSED(event))
   {
     UpdateSearchResultsStatus();
   };
+}
+
+void SearchPanel::OnItemActivated(wxDataViewEvent& event)
+{
+  auto item = event.GetItem();
+  auto row = m_search_results_model->GetRow(item);
+  wxVariant data;
+  m_search_results_model->GetValue(data, item, 0);
+  DEBUG_LOG(ACTIONREPLAY, "%s(): row = %u, value = %s", __FUNCTION__, row,
+            static_cast<const char*>(data.MakeString().ToUTF8()));
 }
 
 void SearchPanel::OnRefresh(wxTimerEvent& WXUNUSED(event))
