@@ -145,7 +145,7 @@ void SearchPanel::CreateGUI()
   UpdateSearchResultsStatus();
 
   m_refresh_timer.SetOwner(m_search_results);
-  m_refresh_timer.Start(33);  // TODO: find a good compromise and make the frequency configurable
+  m_refresh_timer.Start(100);  // TODO: find a good compromise and make the frequency configurable
 }
 
 void SearchPanel::UpdateSearchResultsStatus()
