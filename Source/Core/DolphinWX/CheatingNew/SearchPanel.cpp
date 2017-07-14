@@ -239,10 +239,27 @@ void SearchPanel::OnItemActivated(wxDataViewEvent& event)
 {
   auto item = event.GetItem();
   auto row = m_search_results_model->GetRow(item);
-  wxVariant data;
-  m_search_results_model->GetValue(data, item, 0);
-  DEBUG_LOG(ACTIONREPLAY, "%s(): row = %u, value = %s", __FUNCTION__, row,
-            static_cast<const char*>(data.MakeString().ToUTF8()));
+
+  wxVariant wrapped_address, wrapped_type;
+  m_search_results_model->GetValue(wrapped_address, item, 0);
+  m_search_results_model->GetValue(wrapped_type, item, 1);
+  DEBUG_LOG(ACTIONREPLAY, "%s(): row = %u, address = %s, type = %s", __FUNCTION__, row,
+            static_cast<const char*>(wrapped_address.MakeString().ToUTF8()),
+            static_cast<const char*>(wrapped_type.MakeString().ToUTF8()));
+
+  if (!wrapped_address.IsType("long") || !wrapped_type.IsType("long"))
+    return;
+
+  auto type = static_cast<MemoryItemType>(wrapped_type.GetLong());
+  if (!IsValidMemoryItemType(type))
+    return;
+
+  auto activate_event = wxCommandEvent{DOLPHIN_EVT_CHEATS_ACTIVATE_SEARCH_RESULT};
+  activate_event.SetEventObject(this);
+  activate_event.SetInt(static_cast<int>(type));
+  activate_event.SetExtraLong(wrapped_address.GetLong());
+
+  GetEventHandler()->AddPendingEvent(activate_event);
 }
 
 void SearchPanel::OnRefresh(wxTimerEvent& WXUNUSED(event))
