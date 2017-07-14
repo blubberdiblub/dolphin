@@ -271,9 +271,11 @@ void SearchPanel::OnSearch(wxCommandEvent& WXUNUSED(event))
   DEBUG_LOG(ACTIONREPLAY, "%s(): searching for %s", __FUNCTION__,
             FormatMemoryItem(item).value_or("???").c_str());
   auto retval = m_search_results_model->SearchItem(item, [this](int progress) {
-    auto* const event = new wxCommandEvent(DOLPHIN_EVT_CHEATS_UPDATE_SEARCH_PROGRESS);
+    auto* event = new wxCommandEvent{DOLPHIN_EVT_CHEATS_UPDATE_SEARCH_PROGRESS};
+    event->SetEventObject(this);
     event->SetInt(progress);
-    QueueEvent(event);
+
+    GetEventHandler()->QueueEvent(event);
   });
   DEBUG_LOG(ACTIONREPLAY, "%s(): result = %d", __FUNCTION__, (int)retval);
 }
