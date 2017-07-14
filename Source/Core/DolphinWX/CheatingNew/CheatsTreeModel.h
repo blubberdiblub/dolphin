@@ -7,11 +7,8 @@
 #include <optional>
 #include <string>
 #include <unordered_map>
-#include <variant>
 
 #include <wx/dataview.h>
-#include <wx/string.h>
-#include <wx/variant.h>
 
 #include "DolphinWX/CheatingNew/Utils.h"
 

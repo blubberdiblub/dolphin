@@ -4,16 +4,15 @@
 
 #pragma once
 
-#include <wx/choice.h>
-#include <wx/dataview.h>
-#include <wx/event.h>
-#include <wx/gauge.h>
-#include <wx/object.h>
 #include <wx/panel.h>
-#include <wx/srchctrl.h>
-#include <wx/stattext.h>
 #include <wx/timer.h>
-#include <wx/window.h>
+
+class wxChoice;
+class wxDataViewCtrl;
+class wxDataViewEvent;
+class wxGauge;
+class wxSearchCtrl;
+class wxStaticText;
 
 namespace Cheats
 {

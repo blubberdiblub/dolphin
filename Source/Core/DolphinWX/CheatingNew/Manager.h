@@ -5,8 +5,6 @@
 #pragma once
 
 #include <wx/frame.h>
-#include <wx/string.h>
-#include <wx/window.h>
 
 namespace Cheats
 {

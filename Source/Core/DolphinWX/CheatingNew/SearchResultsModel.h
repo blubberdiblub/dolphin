@@ -8,8 +8,6 @@
 #include <optional>
 
 #include <wx/dataview.h>
-#include <wx/string.h>
-#include <wx/variant.h>
 
 #include "DolphinWX/CheatingNew/Finder.h"
 #include "DolphinWX/CheatingNew/Utils.h"

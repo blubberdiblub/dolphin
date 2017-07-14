@@ -4,12 +4,10 @@
 
 #pragma once
 
-#include <wx/dataview.h>
-#include <wx/event.h>
-#include <wx/object.h>
 #include <wx/panel.h>
 #include <wx/timer.h>
-#include <wx/window.h>
+
+class wxDataViewCtrl;
 
 namespace Cheats
 {

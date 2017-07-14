@@ -8,8 +8,6 @@
 
 #include <wx/frame.h>
 #include <wx/splitter.h>
-#include <wx/string.h>
-#include <wx/window.h>
 
 #include "Common/Logging/Log.h"
 
