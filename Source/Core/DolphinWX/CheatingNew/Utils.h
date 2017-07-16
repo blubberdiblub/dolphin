@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstddef>
+#include <istream>
 #include <optional>
 #include <string>
 #include <variant>
@@ -82,6 +83,7 @@ MemoryItem PeekMemoryItem(Address address, MemoryItemType type, AddressTranslati
 bool PokeMemoryItem(Address address, const MemoryItem& item, AddressTranslation translation);
 
 std::optional<std::string> FormatMemoryItem(const MemoryItem& item);
+MemoryItem ParseMemoryItem(std::istream& is, MemoryItemType type);
 MemoryItem ParseMemoryItem(const std::string& str, MemoryItemType type);
 
 }  // namespace Cheats

@@ -5,6 +5,7 @@
 #include "DolphinWX/CheatingNew/Utils.h"
 
 #include <cstddef>
+#include <istream>
 #include <optional>
 #include <sstream>
 #include <string>
@@ -254,18 +255,14 @@ std::optional<std::string> FormatMemoryItem(const MemoryItem& item)
   return std::nullopt;
 }
 
-MemoryItem ParseMemoryItem(const std::string& str, MemoryItemType type)
+MemoryItem ParseMemoryItem(std::istream& is, MemoryItemType type)
 {
   if (type == MemoryItemType::U8 || type == MemoryItemType::U16 || type == MemoryItemType::U32 ||
       type == MemoryItemType::U64)
   {
     unsigned long long primitive;
 
-    std::istringstream iss(str);
-    if (!(iss >> primitive))
-      return UnspecifiedItem;
-
-    if (iss.get() != decltype(iss)::traits_type::eof())
+    if (!(is >> primitive))
       return UnspecifiedItem;
 
     switch (type)
@@ -284,6 +281,19 @@ MemoryItem ParseMemoryItem(const std::string& str, MemoryItemType type)
   }
 
   return UnspecifiedItem;
+}
+
+MemoryItem ParseMemoryItem(const std::string& str, MemoryItemType type)
+{
+  std::istringstream iss{str};
+  MemoryItem item = ParseMemoryItem(iss, type);
+  if (!IsValidMemoryItem(item))
+    return UnspecifiedItem;
+
+  if (iss.get() != decltype(iss)::traits_type::eof())
+    return UnspecifiedItem;
+
+  return item;
 }
 
 }  // namespace Cheats
