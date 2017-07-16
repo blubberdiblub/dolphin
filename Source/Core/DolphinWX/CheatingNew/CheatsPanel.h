@@ -8,6 +8,9 @@
 #include <wx/timer.h>
 
 class wxDataViewCtrl;
+class wxDataViewEvent;
+
+wxDECLARE_EVENT(DOLPHIN_EVT_CHEATS_ADD_ENTRY, wxCommandEvent);
 
 namespace Cheats
 {
@@ -21,9 +24,14 @@ public:
                        long style = wxTAB_TRAVERSAL, const wxString& name = wxPanelNameStr);
   ~CheatsPanel();
 
+  void OnAddEntry(wxCommandEvent& event);
+
 private:
   void CreateGUI();
 
+  void OnBeginDrag(wxDataViewEvent& event);
+  void OnDropPossible(wxDataViewEvent& event);
+  void OnDrop(wxDataViewEvent& event);
   void OnRefresh(wxTimerEvent& event);
   void OnDelete(wxCommandEvent& event);
 

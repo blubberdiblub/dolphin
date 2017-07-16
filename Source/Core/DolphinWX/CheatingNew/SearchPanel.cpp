@@ -30,9 +30,10 @@
 #include "DolphinWX/CheatingNew/Utils.h"
 #include "DolphinWX/WxUtils.h"
 
+wxDECLARE_EVENT(DOLPHIN_EVT_CHEATS_ADD_ENTRY, wxCommandEvent);
+
 wxDEFINE_EVENT(DOLPHIN_EVT_CHEATS_UPDATE_SEARCH_PROGRESS, wxCommandEvent);
 wxDEFINE_EVENT(DOLPHIN_EVT_CHEATS_NEW_SEARCH_RESULTS, wxCommandEvent);
-wxDEFINE_EVENT(DOLPHIN_EVT_CHEATS_ACTIVATE_SEARCH_RESULT, wxCommandEvent);
 
 namespace Cheats
 {
@@ -254,12 +255,12 @@ void SearchPanel::OnItemActivated(wxDataViewEvent& event)
   if (!IsValidMemoryItemType(type))
     return;
 
-  auto activate_event = wxCommandEvent{DOLPHIN_EVT_CHEATS_ACTIVATE_SEARCH_RESULT};
-  activate_event.SetEventObject(this);
-  activate_event.SetInt(static_cast<int>(type));
-  activate_event.SetExtraLong(wrapped_address.GetLong());
+  auto add_entry_event = wxCommandEvent{DOLPHIN_EVT_CHEATS_ADD_ENTRY};
+  add_entry_event.SetEventObject(this);
+  add_entry_event.SetInt(static_cast<int>(type));
+  add_entry_event.SetExtraLong(wrapped_address.GetLong());
 
-  GetEventHandler()->AddPendingEvent(activate_event);
+  GetEventHandler()->AddPendingEvent(add_entry_event);
 }
 
 void SearchPanel::OnRefresh(wxTimerEvent& WXUNUSED(event))

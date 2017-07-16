@@ -4,6 +4,8 @@
 
 #include "DolphinWX/CheatingNew/CheatsPanel.h"
 
+#include <cstdint>
+
 #include <wx/arrstr.h>
 #include <wx/button.h>
 #include <wx/dataview.h>
@@ -21,6 +23,8 @@
 #include "DolphinWX/CheatingNew/CheatsTreeModel.h"
 #include "DolphinWX/CheatingNew/Utils.h"
 #include "DolphinWX/WxUtils.h"
+
+wxDEFINE_EVENT(DOLPHIN_EVT_CHEATS_ADD_ENTRY, wxCommandEvent);
 
 namespace Cheats
 {
@@ -92,6 +96,12 @@ void CheatsPanel::CreateGUI()
       new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_EDITABLE, wxALIGN_LEFT), 1, 120,
       wxALIGN_CENTER, wxDATAVIEW_COL_RESIZABLE));
 
+  m_cheats_tree->Bind(wxEVT_DATAVIEW_ITEM_BEGIN_DRAG, &CheatsPanel::OnBeginDrag, this);
+  m_cheats_tree->Bind(wxEVT_DATAVIEW_ITEM_DROP_POSSIBLE, &CheatsPanel::OnDropPossible, this);
+  m_cheats_tree->Bind(wxEVT_DATAVIEW_ITEM_DROP, &CheatsPanel::OnDrop, this);
+  m_cheats_tree->EnableDragSource(wxDF_UNICODETEXT);
+  m_cheats_tree->EnableDropTarget(wxDF_UNICODETEXT);
+
   m_cheats_tree->Bind(wxEVT_TIMER, &CheatsPanel::OnRefresh, this);
   m_refresh_timer.SetOwner(m_cheats_tree);
 
@@ -108,6 +118,45 @@ void CheatsPanel::CreateGUI()
 
   SetSizer(cheats_sizer);
   SetMinClientSize(cheats_sizer->ComputeFittingClientSize(this));
+}
+
+void CheatsPanel::OnAddEntry(wxCommandEvent& event)
+{
+  m_cheats_tree_model->AddEntry(event.GetExtraLong(), static_cast<MemoryItemType>(event.GetInt()));
+}
+
+void CheatsPanel::OnBeginDrag(wxDataViewEvent& event)
+{
+  auto item = event.GetItem();
+
+  auto* data_obj = new wxTextDataObject{};
+  data_obj->SetText("foobar");
+  event.SetDataObject(data_obj);
+  event.SetClientData(item.GetID());
+
+  event.SetDragFlags(wxDrag_AllowMove);
+  DEBUG_LOG(ACTIONREPLAY, "%s(): item = %lu", __FUNCTION__,
+            reinterpret_cast<uintptr_t>(item.GetID()));
+}
+
+void CheatsPanel::OnDropPossible(wxDataViewEvent& event)
+{
+  auto item = event.GetItem();
+  auto key = event.GetClientData();
+
+  DEBUG_LOG(ACTIONREPLAY, "%s(): item = %lu, effect = %d, key = %lu", __FUNCTION__,
+            reinterpret_cast<uintptr_t>(item.GetID()), event.GetDropEffect(),
+            reinterpret_cast<uintptr_t>(key));
+}
+
+void CheatsPanel::OnDrop(wxDataViewEvent& event)
+{
+  auto item = event.GetItem();
+  auto key = event.GetClientData();
+
+  DEBUG_LOG(ACTIONREPLAY, "%s(): item = %lu, effect = %d, key = %lu", __FUNCTION__,
+            reinterpret_cast<uintptr_t>(item.GetID()), event.GetDropEffect(),
+            reinterpret_cast<uintptr_t>(key));
 }
 
 void CheatsPanel::OnRefresh(wxTimerEvent& WXUNUSED(event))

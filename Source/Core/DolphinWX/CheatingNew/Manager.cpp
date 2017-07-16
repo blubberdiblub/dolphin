@@ -36,6 +36,7 @@ void ManagerWindow::CreateGUI()
   auto* const splitter = new wxSplitterWindow(this, wxID_ANY);
   auto* const search_panel = new SearchPanel(splitter, wxID_ANY);
   auto* const cheats_panel = new CheatsPanel(splitter, wxID_ANY);
+  Bind(DOLPHIN_EVT_CHEATS_ADD_ENTRY, &CheatsPanel::OnAddEntry, cheats_panel);
 
   splitter->SplitHorizontally(search_panel, cheats_panel);
   splitter->SetMinimumPaneSize(
