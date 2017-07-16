@@ -25,6 +25,7 @@ private:
   void CreateGUI();
 
   void OnRefresh(wxTimerEvent& event);
+  void OnDelete(wxCommandEvent& event);
 
   wxObjectDataPtr<CheatsTreeModel> m_cheats_tree_model;
 

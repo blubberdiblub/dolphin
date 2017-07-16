@@ -289,6 +289,25 @@ unsigned int CheatsTreeModel::GetChildren(const wxDataViewItem& item,
   return children.size();
 }
 
+bool CheatsTreeModel::DeleteEntry(const wxDataViewItem& entry)
+{
+  if (!entry.IsOk())
+    return false;
+
+  auto key = entry.GetID();
+  auto it = m_entries.find(key);
+  if (it == m_entries.end())
+    return false;
+
+  // FIXME: move children to parent
+
+  auto parent = it->second.parent;
+  m_entries.erase(it);
+
+  ItemDeleted(wxDataViewItem{parent}, wxDataViewItem{key});
+  return true;
+}
+
 bool CheatsTreeModel::ChangeDataLock(Data& data, bool lock)
 {
   if (!IsValidMemoryItemType(data.type))

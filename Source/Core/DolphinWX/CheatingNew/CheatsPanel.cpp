@@ -5,6 +5,7 @@
 #include "DolphinWX/CheatingNew/CheatsPanel.h"
 
 #include <wx/arrstr.h>
+#include <wx/button.h>
 #include <wx/dataview.h>
 #include <wx/event.h>
 #include <wx/gdicmn.h>
@@ -94,8 +95,16 @@ void CheatsPanel::CreateGUI()
   m_cheats_tree->Bind(wxEVT_TIMER, &CheatsPanel::OnRefresh, this);
   m_refresh_timer.SetOwner(m_cheats_tree);
 
+  auto* const delete_button =
+      new wxButton(this, wxID_ANY, _("Delete"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
+  delete_button->Bind(wxEVT_BUTTON, &CheatsPanel::OnDelete, this);
+
+  auto* const control_sizer = new wxBoxSizer(wxHORIZONTAL);
+  control_sizer->Add(delete_button, wxSizerFlags(0).Expand());
+
   auto* const cheats_sizer = new wxBoxSizer(wxVERTICAL);
   cheats_sizer->Add(m_cheats_tree, wxSizerFlags(1).Expand());
+  cheats_sizer->Add(control_sizer, wxSizerFlags(0));
 
   SetSizer(cheats_sizer);
   SetMinClientSize(cheats_sizer->ComputeFittingClientSize(this));
@@ -105,6 +114,14 @@ void CheatsPanel::OnRefresh(wxTimerEvent& WXUNUSED(event))
 {
   // DEBUG_LOG(ACTIONREPLAY, "%s(): refreshing search results", __FUNCTION__);
   m_cheats_tree->Refresh();
+}
+
+void CheatsPanel::OnDelete(wxCommandEvent& WXUNUSED(event))
+{
+  if (!m_cheats_tree->HasSelection())
+    return;
+
+  m_cheats_tree_model->DeleteEntry(m_cheats_tree->GetSelection());
 }
 
 }  // namespace Cheats
