@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <optional>
 #include <string>
 #include <unordered_map>
@@ -32,6 +33,9 @@ public:
   virtual bool IsContainer(const wxDataViewItem& item) const;
   virtual unsigned int GetChildren(const wxDataViewItem& item, wxDataViewItemArray& children) const;
 
+  bool AddEntry(Address address, MemoryItemType type);
+  bool DeleteEntry(const wxDataViewItem& entry);
+
 private:
   struct Data
   {
@@ -49,8 +53,11 @@ private:
     std::optional<Data> data;
   };
 
+  uintptr_t m_current_key = 0;
   mutable std::unordered_map<void*, Entry> m_entries;
   std::unordered_multimap<void*, void*> m_children;
+
+  void* GetNewKey();
 
   static bool ChangeDataLock(Data& data, bool lock);
   static bool ChangeDataType(Data& data, MemoryItemType type);

@@ -24,14 +24,14 @@ CheatsTreeModel::CheatsTreeModel()
 {
   DEBUG_LOG(ACTIONREPLAY, "%s(): creating", __FUNCTION__);
 
-  void* key1 = reinterpret_cast<void*>(1);
+  auto key1 = GetNewKey();
   {
     const Entry entry{nullptr, "Just a Header", "Thing you can expand and collapse.", std::nullopt};
     m_entries.emplace(key1, std::move(entry));
     m_children.emplace(entry.parent, key1);
   }
 
-  void* key2 = reinterpret_cast<void*>(2);
+  auto key2 = GetNewKey();
   {
     const Entry entry{nullptr, "Byte with Children", "",
                       Data{0x80001111U, MemoryItemType::U8, UnspecifiedItem, false}};
@@ -39,7 +39,7 @@ CheatsTreeModel::CheatsTreeModel()
     m_children.emplace(entry.parent, key2);
   }
 
-  void* key3 = reinterpret_cast<void*>(3);
+  auto key3 = GetNewKey();
   {
     const Entry entry{key1, "Short", "",
                       Data{0x80002222U, MemoryItemType::U16, UnspecifiedItem, false}};
@@ -47,7 +47,7 @@ CheatsTreeModel::CheatsTreeModel()
     m_children.emplace(entry.parent, key3);
   }
 
-  void* key4 = reinterpret_cast<void*>(4);
+  auto key4 = GetNewKey();
   {
     const Entry entry{key2, "Long", "",
                       Data{0x80004444U, MemoryItemType::U32, UnspecifiedItem, false}};
@@ -55,7 +55,7 @@ CheatsTreeModel::CheatsTreeModel()
     m_children.emplace(entry.parent, key4);
   }
 
-  void* key5 = reinterpret_cast<void*>(5);
+  auto key5 = GetNewKey();
   {
     const Entry entry{key1, "Quad", "",
                       Data{0x80008888U, MemoryItemType::U64, UnspecifiedItem, false}};
@@ -289,6 +289,20 @@ unsigned int CheatsTreeModel::GetChildren(const wxDataViewItem& item,
   return children.size();
 }
 
+bool CheatsTreeModel::AddEntry(Address address, MemoryItemType type)
+{
+  if (!IsValidMemoryItemType(type))
+    return false;
+
+  auto key = GetNewKey();
+  auto entry = Entry{nullptr, "", "", Data{address, type, UnspecifiedItem, false}};
+  m_children.emplace(entry.parent, key);
+  m_entries.emplace(key, std::move(entry));
+
+  ItemAdded(wxDataViewItem{}, wxDataViewItem{key});
+  return true;
+}
+
 bool CheatsTreeModel::DeleteEntry(const wxDataViewItem& entry)
 {
   if (!entry.IsOk())
@@ -306,6 +320,12 @@ bool CheatsTreeModel::DeleteEntry(const wxDataViewItem& entry)
 
   ItemDeleted(wxDataViewItem{parent}, wxDataViewItem{key});
   return true;
+}
+
+void* CheatsTreeModel::GetNewKey()
+{
+  ++m_current_key;
+  return reinterpret_cast<void*>(m_current_key);
 }
 
 bool CheatsTreeModel::ChangeDataLock(Data& data, bool lock)
